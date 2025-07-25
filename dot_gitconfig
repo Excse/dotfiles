@@ -1,0 +1,19 @@
+[core]
+	autocrlf = input
+	compression = 9
+
+[user]
+	name = Timo Behrend
+	email = behrendtimo@yahoo.de
+	signingkey = 343E4E6CF2384652
+
+[commit]
+	gpgsign = true
+
+[tag]
+	gpgSign = true
+
+[gpg]
+	program = gpg
+[pull]
+	rebase = true
