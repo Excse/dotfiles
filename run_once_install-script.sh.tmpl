@@ -1,0 +1,105 @@
+#!/bin/sh
+set -e
+
+# Checks if the script is root to make $SUDO usable for install commands that require sudo-privileges
+if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+  SUDO="sudo"
+else
+  SUDO=""
+fi
+
+spinner() {
+  name="$1"
+  pid="$2"
+
+  index=0
+  while kill -0 "$pid" 2>/dev/null; do
+    index=$(((index + 1) % 4))
+
+    case $index in
+    0) current="-" ;;
+    1) current="\\" ;;
+    2) current="|" ;;
+    3) current="/" ;;
+    esac
+
+    printf "\r[%c] Downloading and installing '$name'..." "$current"
+    sleep 0.1
+  done
+
+  printf "\r    \r"
+}
+
+ensure_installed() {
+  name="$1"
+  check_cmd="$2"
+  install_cmd="$3"
+
+  echo "🔍 Checking $name..."
+  if eval "$check_cmd"; then
+    echo "✅ $name already installed"
+  else
+    start=$(date +%s)
+
+    echo "⬇️ Installing $name..."
+    eval "$install_cmd" >/dev/null &
+    spinner "$name" "$!"
+
+    end=$(date +%s)
+    duration=$((end - start))
+
+    echo "✅ $name installed in ${duration}s"
+  fi
+}
+
+ensure_installed \
+  "figlet" \
+  "command -v figlet >/dev/null 2>&1" \
+  "DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y figlet"
+
+ensure_installed \
+  "lolcat" \
+  "command -v lolcat >/dev/null 2>&1" \
+  "DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y lolcat"
+
+ensure_installed \
+  "zsh" \
+  "command -v zsh >/dev/null 2>&1" \
+  "DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y zsh"
+
+install_oh_my_zsh() {
+  RUNZSH=no KEEP_ZSHRC=yes \
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+}
+
+ensure_installed \
+  "oh-my-zsh" \
+  "[ -d \"$HOME/.oh-my-zsh\" ]" \
+  "install_oh_my_zsh"
+
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+
+ensure_installed \
+  "powerlevel10k" \
+  "[ -d \"${ZSH_CUSTOM}/themes/powerlevel10k\" ]" \
+  "git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \"${ZSH_CUSTOM}/themes/powerlevel10k\""
+
+ensure_installed \
+  "powerlevel10k" \
+  "[ -d \"${ZSH_CUSTOM}/plugins/zsh-autosuggestions\" ]" \
+  "git clone https://github.com/zsh-users/zsh-autosuggestions \"${ZSH_CUSTOM}/themes/zsh-autosuggestions\""
+
+ensure_installed \
+  "zsh-syntax-highlighting" \
+  "[ -d \"${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting\" ]" \
+  "git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \"${ZSH_CUSTOM}/themes/zsh-syntax-highlighting\""
+
+ensure_installed \
+  "zsh-completions" \
+  "[ -d \"${ZSH_CUSTOM}/plugins/zsh-completions\" ]" \
+  "git clone https://github.com/zsh-users/zsh-completions.git \"${ZSH_CUSTOM}/themes/zsh-completions\""
+
+ensure_installed \
+  "you-should-use" \
+  "[ -d \"${ZSH_CUSTOM}/plugins/you-should-use\" ]" \
+  "git clone https://github.com/MichaelAquilina/zsh-you-should-use.git \"${ZSH_CUSTOM}/themes/you-should-use\""

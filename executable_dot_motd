@@ -1,7 +1,6 @@
 #!/bin/bash
 
 RESET="\033[0m"
-BOLD="\033[1m"
 BLUE="\033[1;34m"
 GREEN="\033[1;32m"
 CYAN="\033[1;36m"
@@ -17,25 +16,30 @@ for arg in "$@"; do
 done
 
 TERMINAL_WIDTH=$(tput cols)
-
 if [ "$SHOW_WELCOME" == true ]; then
-  figlet -c -w$TERMINAL_WIDTH -fslant "Welcome, $(whoami)" | lolcat
+  figlet -c -w"$TERMINAL_WIDTH" -fslant "Welcome, $(whoami)" | lolcat
 else
-  figlet -c -w$TERMINAL_WIDTH -fslant "Cleared for takeoff!" | lolcat
+  figlet -c -w"$TERMINAL_WIDTH" -fslant "Cleared for takeoff!" | lolcat
 fi
 
-echo -e "${YELLOW}📅 Date: ${CYAN}$(date +'%A, %B %d, %Y')${RESET}"
+echo -e "${YELLOW}📅 Date:     ${CYAN}$(date +'%A, %B %d, %Y')${RESET}"
 
-echo -e "${MAGENTA}⏳ Uptime: ${CYAN}$(uptime -p)${RESET}"
+LOAD=$(uptime | awk -F'load average:' '{print $2}' | sed 's/^ *//')
+echo -e "${GREEN}💻 CPU Load: ${CYAN}${LOAD}${RESET}"
 
 MEMORY_USED=$(free -h | awk '/^Mem:/ {print $3}')
 MEMORY_TOTAL=$(free -h | awk '/^Mem:/ {print $2}')
-echo -e "${GREEN}💾 Memory: ${CYAN}$MEMORY_USED / $MEMORY_TOTAL${RESET}"
+echo -e "${MAGENTA}💾 Memory:   ${CYAN}$MEMORY_USED / $MEMORY_TOTAL${RESET}"
 
 DISK_USED=$(df -h / | awk 'NR==2 {print $3}')
 DISK_TOTAL=$(df -h / | awk 'NR==2 {print $2}')
 DISK_PERCENT=$(df -h / | awk 'NR==2 {print $5}')
-echo -e "${BLUE}🗄️ Disk: ${CYAN}$DISK_USED used ($DISK_PERCENT of $DISK_TOTAL)${RESET}"
+echo -e "${BLUE}🗄️ Disk:     ${CYAN}$DISK_USED used ($DISK_PERCENT of $DISK_TOTAL)${RESET}"
 
 SESSIONS=$(who | wc -l)
-echo -e "${RED}👥 Active Sessions: ${CYAN}$SESSIONS${RESET}"
+echo -e "${RED}👥 Sessions: ${CYAN}$SESSIONS active${RESET}"
+
+if command -v upower >/dev/null; then
+  BATTERY=$(upower -i "$(upower -e | grep BAT)" | awk '/percentage/ {print $2}')
+  [ -n "$BATTERY" ] && echo -e "${MAGENTA}🔋 Battery:  ${CYAN}$BATTERY${RESET}"
+fi
