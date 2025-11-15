@@ -5,7 +5,7 @@
 [user]
 	name = Timo Behrend
 	email = behrendtimo@yahoo.de
-	signingkey = 343E4E6CF2384652
+	signingkey = ECC61E5BA689F926
 
 [commit]
 	gpgsign = true
